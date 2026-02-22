@@ -15,38 +15,40 @@
 **UI/View**  havainnollistaa tiedon käyttäjälle (WeatherScreen) ja reagoi muutoksiin LiveData/Flow:n kautta.
 
 **Projektin rakenne**
+```
 MainActivity.kt
 |
 +---data
-|   \---remote
-|       |   RetrofitInstance.kt
-|       |   WeatherApi.kt
-|       |
-|       +---local
-|       |       AppDatabase.kt
-|       |       SearchHistoryDao.kt
-|       |       WeatherDao.kt
-|       |
-|       +---model
-|       |       SearchHistoryEntity.kt
-|       |       WeatherEntity.kt
-|       |       WeatherResponse.kt
-|       |
-|       \---repository
-|               SearchHistoryRepository.kt
-|               WeatherRepository.kt
+| ---remote
+| | RetrofitInstance.kt
+| | WeatherApi.kt
+| |
+| +---local
+| | AppDatabase.kt
+| | SearchHistoryDao.kt
+| | WeatherDao.kt
+| |
+| +---model
+| | SearchHistoryEntity.kt
+| | WeatherEntity.kt
+| | WeatherResponse.kt
+| |
+| ---repository
+| SearchHistoryRepository.kt
+| WeatherRepository.kt
 |
 +---ui
-|   \---theme
-|           Color.kt
-|           Theme.kt
-|           Type.kt
+| ---theme
+| Color.kt
+| Theme.kt
+| Type.kt
 |
 +---view
-|       WeatherScreen.kt
+| WeatherScreen.kt
 |
-\---viewmodel
-        WeatherViewModel.kt
+---viewmodel
+WeatherViewModel.kt
+```
 **Datavirran kulku**
 
 UI pyytää tietoa ViewModelilta (WeatherScreen → WeatherViewModel).
