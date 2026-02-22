@@ -2,15 +2,19 @@ package com.example.weatherapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.weatherapp.BuildConfig
-import com.example.weatherapp.data.remote.RetrofitClient
+import com.example.weatherapp.data.remote.model.SearchHistoryEntity
+import com.example.weatherapp.data.remote.repository.SearchHistoryRepository
+import com.example.weatherapp.data.remote.repository.WeatherRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlin.Double
 
-class WeatherViewModel : ViewModel() {
+class WeatherViewModel(
+    private val weatherRepository: WeatherRepository,
+    private val searchHistoryRepository: SearchHistoryRepository
+) : ViewModel() {
 
     data class WeatherList(
         val city: String,
@@ -24,29 +28,33 @@ class WeatherViewModel : ViewModel() {
     val weather: StateFlow<List<WeatherList>> = _weather
 
     private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    val error: StateFlow<String?> = _error
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    val isLoading: StateFlow<Boolean> = _isLoading
 
-    fun setCity(city: String){
+    val searchHistory: StateFlow<List<SearchHistoryEntity>> =
+        searchHistoryRepository.getAllHistory()
+            .stateIn(viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList())
+
+    fun setCity(city: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             try {
-                val cityWeather = RetrofitClient.apiService.getWeather(
-                    city,
-                    apiKey = BuildConfig.OPEN_WEATHER_API_KEY,
-                    units = "metric"
-                )
+                searchHistoryRepository.addHistory(city)
+                val entity = weatherRepository.getWeather(city)
+
                 _weather.value = listOf(
                     WeatherList(
-                        city = cityWeather.name,
-                        description = cityWeather.weather.firstOrNull()?.description ?: "No data",
-                        temperature = cityWeather.main.temp,
-                        feelsLike = cityWeather.main.feels_like,
-                        humidity = cityWeather.main.humidity,
-                        windSpeed = cityWeather.wind.speed
+                        city = entity.city,
+                        description = entity.description,
+                        temperature = entity.temperature,
+                        feelsLike = entity.feelsLike,
+                        humidity = entity.humidity,
+                        windSpeed = entity.windSpeed
                     )
                 )
             } catch (e: Exception) {
@@ -56,5 +64,4 @@ class WeatherViewModel : ViewModel() {
             }
         }
     }
-
 }
